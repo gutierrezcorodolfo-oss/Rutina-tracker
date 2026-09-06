@@ -1,0 +1,33 @@
+{
+  "name": "Rutina Tracker - Hipertrofia + Definición",
+  "short_name": "Rutina Tracker",
+  "description": "Tu app personal para trackear ejercicios de hipertrofia y definición abdominal",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4ecdc4",
+  "orientation": "portrait-primary",
+  "scope": "./",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%234ecdc4' width='192' height='192'/><text x='50%' y='50%' font-size='100' font-weight='bold' fill='white' text-anchor='middle' dominant-baseline='central'>💪</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect fill='%234ecdc4' width='512' height='512'/><text x='50%' y='50%' font-size='280' font-weight='bold' fill='white' text-anchor='middle' dominant-baseline='central'>💪</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["fitness", "health"],
+  "screenshots": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 540 720'><rect fill='%23f7f9fc' width='540' height='720'/><text x='270' y='60' font-size='32' font-weight='bold' fill='%234ecdc4' text-anchor='middle'>Rutina Tracker</text></svg>",
+      "sizes": "540x720",
+      "type": "image/svg+xml"
+    }
+  ]
+}

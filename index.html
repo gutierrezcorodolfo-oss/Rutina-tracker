@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description" content="Tu app personal para trackear ejercicios de hipertrofia y definición abdominal">
+    <meta name="theme-color" content="#4ecdc4">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Rutina Tracker">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect fill='%234ecdc4' width='180' height='180' rx='40'/><text x='50%' y='50%' font-size='100' font-weight='bold' fill='white' text-anchor='middle' dominant-baseline='central'>💪</text></svg>">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%234ecdc4' width='192' height='192'/><text x='50%' y='50%' font-size='100' font-weight='bold' fill='white' text-anchor='middle' dominant-baseline='central'>💪</text></svg>">
+    
+    <title>💪 Rutina Tracker - Hipertrofia + Definición</title>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #1a2332;
+            --secondary: #4ecdc4;
+            --accent: #ff6b6b;
+            --success: #51cf66;
+            --bg-light: #f7f9fc;
+            --text-dark: #333333;
+            --border-light: #e0e0e0;
+            --safe-area-top: max(12px, env(safe-area-inset-top));
+            --safe-area-bottom: max(12px, env(safe-area-inset-bottom));
+        }
+
+        html, body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, var(--primary) 0%, #2d3e50 100%);
+            color: var(--text-dark);
+            padding-top: var(--safe-area-top);
+            padding-bottom: var(--safe-area-bottom);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 20px;
+            flex: 1;
+            overflow: hidden;
+            padding: 10px;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .sidebar-header {
+            text-align: center;
+            margin-bottom: 25px;
+            border-bottom: 2px solid var(--secondary);
+            padding-bottom: 15px;
+        }
+
+        .sidebar-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+
+        .sidebar-subtitle {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .days-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .day-btn {
+            padding: 12px 15px;
+            border: 2px solid var(--border-light);
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-align: left;
+            color: var(--text-dark);
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .day-btn:active {
+            transform: scale(0.97);
+        }
+
+        .day-btn:hover {
+            border-color: var(--secondary);
+            background: #f0fffe;
+        }
+
+        .day-btn.active {
+            background: var(--secondary);
+            color: white;
+            border-color: var(--secondary);
+            box-shadow: 0 4px 12px rgba(78, 205, 196, 0.3);
+        }
+
+        .day-btn.completed {
+            background: var(--success);
+            color: white;
+            border-color: var(--success);
+        }
+
+        .day-btn.completed::after {
+            content: ' ✓';
+            font-weight: bold;
+        }
+
+        .stats {
+            background: var(--bg-light);
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--secondary);
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: #999;
+            margin-top: 3px;
+        }
+
+        .reset-btn {
+            width: 100%;
+            padding: 10px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 12px;
+            transition: all 0.3s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .reset-btn:active {
+            transform: scale(0.97);
+        }
+
+        .reset-btn:hover {
+            background: #ff5252;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+        }
+
+        /* MAIN CONTENT */
+        .main {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            flex: 1;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 3px solid var(--secondary);
+            padding-bottom: 20px;
+        }
+
+        .day-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
+
+        .day-subtitle {
+            font-size: 14px;
+            color: var(--secondary);
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .day-focus {
+            font-size: 13px;
+            color: #666;
+            font-style: italic;
+        }
+
+        .section {
+            margin-bottom: 35px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--secondary);
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .exercise-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px;
+            background: var(--bg-light);
+            border-radius: 8px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+            border-left: 4px solid var(--border-light);
+        }
+
+        .exercise-item:active {
+            transform: scale(0.99);
+        }
+
+        .exercise-item:hover {
+            background: #f0fffe;
+            border-left-color: var(--secondary);
+            transform: translateX(4px);
+        }
+
+        .exercise-item.completed {
+            background: #f0fef0;
+            border-left-color: var(--success);
+            opacity: 0.7;
+        }
+
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+
+        .checkbox {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            accent-color: var(--secondary);
+            -webkit-appearance: none;
+            appearance: none;
+            border: 2px solid var(--secondary);
+            border-radius: 6px;
+            padding: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            transition: all 0.2s;
+        }
+
+        .checkbox:checked {
+            background: var(--secondary);
+        }
+
+        .checkbox:checked::after {
+            content: '✓';
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .exercise-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .exercise-name {
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+
+        .exercise-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            font-size: 12px;
+        }
+
+        .detail {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: var(--secondary);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .detail-value {
+            color: var(--text-dark);
+            margin-top: 2px;
+        }
+
+        /* CARDIO ESPECIAL */
+        .cardio-item {
+            background: linear-gradient(135deg, #ffe5e5 0%, #fff0f0 100%);
+            border-left-color: var(--accent) !important;
+        }
+
+        .cardio-item:hover {
+            background: linear-gradient(135deg, #ffd9d9 0%, #ffebeb 100%);
+        }
+
+        /* PROGRESS BAR */
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: var(--border-light);
+            border-radius: 3px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--secondary), var(--success));
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        .legend {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            font-size: 12px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border-light);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+        }
+
+        .install-prompt {
+            background: var(--secondary);
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 12px;
+            display: none;
+            text-align: center;
+        }
+
+        .install-prompt.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+                gap: 10px;
+                max-height: none;
+                padding: 15px;
+            }
+
+            .sidebar-header {
+                grid-column: 1 / -1;
+                margin-bottom: 15px;
+                padding-bottom: 10px;
+            }
+
+            .days-list {
+                grid-column: 1 / -1;
+                flex-direction: row;
+                flex-wrap: wrap;
+                margin-bottom: 10px;
+            }
+
+            .day-btn {
+                flex: 1;
+                min-width: 80px;
+                padding: 10px;
+                font-size: 12px;
+            }
+
+            .stats {
+                grid-column: 1 / -1;
+            }
+
+            .reset-btn {
+                grid-column: 1 / -1;
+                padding: 8px;
+                font-size: 11px;
+            }
+
+            .exercise-details {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main {
+                padding: 20px;
+            }
+
+            .day-title {
+                font-size: 22px;
+            }
+
+            .exercise-details {
+                grid-template-columns: 1fr;
+            }
+
+            .exercise-item {
+                gap: 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .main {
+                padding: 15px;
+            }
+
+            .day-title {
+                font-size: 20px;
+            }
+
+            .section-title {
+                font-size: 14px;
+            }
+
+            .exercise-details {
+                gap: 5px;
+            }
+        }
+
+        /* SCROLL */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-light);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--secondary);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary);
+        }
+    </style>
+</head>
+<body>
+    <div id="installPrompt" class="install-prompt">
+        📱 Toca "Instalar" en el menú del navegador para tener la app en tu home screen
+    </div>
+
+    <div class="container">
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-title">💪 MIS DÍAS</div>
+                <div class="sidebar-subtitle">Selecciona uno para ver</div>
+            </div>
+
+            <div class="stats">
+                <span class="stat-number" id="completedCount">0</span>
+                <span class="stat-label">Ejercicios hoy</span>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div class="days-list" id="daysList"></div>
+
+            <button class="reset-btn" onclick="resetTodaysData()">🗑️ Limpiar hoy</button>
+
+            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border-light);">
+                <button class="reset-btn" style="background: #666; margin-bottom: 8px;" onclick="resetAllData()">
+                    🔄 Resetear TODO
+                </button>
+                <div style="font-size: 11px; color: #999; text-align: center; margin-top: 8px;">
+                    Datos guardados localmente
+                </div>
+            </div>
+
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-dot" style="background: var(--success)"></div>
+                    <span>Día completado</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background: var(--secondary)"></div>
+                    <span>Día actual</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background: var(--border-light)"></div>
+                    <span>Pendiente</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="main" id="mainContent"></div>
+    </div>
+
+    <script>
+        // REGISTRAR SERVICE WORKER
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+                .then(reg => console.log('✅ Service Worker registrado'))
+                .catch(err => console.log('❌ Service Worker error:', err));
+        }
+
+        // PROMPT DE INSTALACIÓN
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('installPrompt').classList.add('show');
+        });
+
+        window.addEventListener('appinstalled', () => {
+            document.getElementById('installPrompt').classList.remove('show');
+            console.log('✅ App instalada!');
+        });
+
+        // DATOS DE LA RUTINA
+        const rutina = {
+            1: {
+                nombre: "PECHO + BÍCEPS + ABS",
+                enfasis: "Volumen alto pecho y brazos",
+                ejercicios: [
+                    { nombre: "Press inclinado mancuernas", series: "4 × 8–10", peso: "28–30 kg c/u", descanso: "2–3 min" },
+                    { nombre: "Press banca plano", series: "5 × 6–8", peso: "75–80 kg", descanso: "2–3 min" },
+                    { nombre: "Fondos lastrados", series: "4 × 6–10", peso: "+12–15 kg", descanso: "2 min" },
+                    { nombre: "Aperturas en cable", series: "4 × 12–15", peso: "18–22 kg", descanso: "60–90 s" },
+                    { nombre: "Curl barra", series: "4 × 8–10", peso: "32–35 kg", descanso: "90–120 s" },
+                    { nombre: "Curl inclinado", series: "3 × 10–12", peso: "14–16 kg c/u", descanso: "90 s" },
+                    { nombre: "Curl cable 21s", series: "3 × 12–15", peso: "20 kg", descanso: "60–90 s" },
+                    { nombre: "Cable crunch", series: "4 × 12–15", peso: "45–50 kg", descanso: "60–90 s" },
+                    { nombre: "Elevaciones piernas colgado", series: "4 × 12–18", peso: "Peso corporal", descanso: "60 s" },
+                    { nombre: "Plancha con peso", series: "3 × 45–60 s", peso: "+5–10 kg", descanso: "60 s" }
+                ]
+            },
+            2: {
+                nombre: "ESPALDA + TRÍCEPS + CARDIO",
+                enfasis: "Ancho máximo y tríceps voluminosos",
+                ejercicios: [
+                    { nombre: "Dominadas", series: "4 × 6–10", peso: "Peso corporal / +5–10 kg", descanso: "2–3 min" },
+                    { nombre: "Remo barra", series: "5 × 8", peso: "75–80 kg", descanso: "2–3 min" },
+                    { nombre: "Jalón ancho", series: "4 × 8–12", peso: "65–70 kg", descanso: "2 min" },
+                    { nombre: "Pullover cable", series: "3 × 10–15", peso: "32–35 kg", descanso: "90 s" },
+                    { nombre: "Remo cercano agarre", series: "3 × 8–12", peso: "60–65 kg", descanso: "90 s" },
+                    { nombre: "Fondos cerrados", series: "3 × 6–12", peso: "Peso corporal / +10 kg", descanso: "2 min" },
+                    { nombre: "Extensión tríceps cuerda", series: "3 × 10–15", peso: "30–35 kg", descanso: "60–90 s" },
+                    { nombre: "Pressdown overhead", series: "3 × 12–15", peso: "25–30 kg", descanso: "60 s" },
+                    { nombre: "CARDIO: Caminata inclinada", series: "25–30 min", peso: "Moderada-alta", descanso: "—", cardio: true }
+                ]
+            },
+            3: {
+                nombre: "GLÚTEO + PIERNA + HOMBRO",
+                enfasis: "Segundo objetivo: glúteos fuertes y hombros anchos",
+                ejercicios: [
+                    { nombre: "Sentadilla profunda", series: "5 × 6–8", peso: "100–105 kg", descanso: "2–3 min" },
+                    { nombre: "Hip Thrust", series: "5 × 8–10", peso: "130–140 kg", descanso: "2–3 min" },
+                    { nombre: "Prensa pies", series: "4 × 10–12", peso: "200–220 kg", descanso: "2 min" },
+                    { nombre: "Romanian Deadlift", series: "4 × 8–10", peso: "75–95 kg", descanso: "2–3 min" },
+                    { nombre: "Bulgarian Split Squat", series: "3 × 8–10", peso: "20–24 kg c/u", descanso: "2 min" },
+                    { nombre: "Cable Kickbacks", series: "4 × 12–15", peso: "14–20 kg", descanso: "60–90 s" },
+                    { nombre: "Abducciones máquina", series: "4 × 15–25", peso: "Pesado", descanso: "60–90 s" },
+                    { nombre: "Press militar", series: "4 × 6–8", peso: "50–52 kg", descanso: "2 min" },
+                    { nombre: "Elevaciones laterales", series: "5 × 12–20", peso: "10–12 kg", descanso: "60–90 s" },
+                    { nombre: "Pájaros reverse fly", series: "3 × 12–20", peso: "12–14 kg", descanso: "60–90 s" }
+                ]
+            },
+            4: {
+                nombre: "PECHO SUPERIOR + HOMBRO + ABS",
+                enfasis: "Crear contraste cintura/hombros",
+                ejercicios: [
+                    { nombre: "Press inclinado barra", series: "5 × 6–8", peso: "70–75 kg", descanso: "2–3 min" },
+                    { nombre: "Press plano mancuernas", series: "4 × 8–12", peso: "30–32 kg c/u", descanso: "2 min" },
+                    { nombre: "Fondos", series: "4 × 8–15", peso: "Peso corporal / +15 kg", descanso: "2 min" },
+                    { nombre: "Elevaciones laterales", series: "5 × 15–20", peso: "10–12 kg", descanso: "60–90 s" },
+                    { nombre: "Face pull", series: "4 × 12–15", peso: "38–42 kg", descanso: "60–90 s" },
+                    { nombre: "Reverse fly máquina", series: "3 × 12–15", peso: "Moderado", descanso: "60 s" },
+                    { nombre: "Crunch cable", series: "4 × 12–15", peso: "45–50 kg", descanso: "60–90 s" },
+                    { nombre: "Russian twists", series: "3 × 20–25", peso: "12–15 kg", descanso: "60 s" },
+                    { nombre: "Plancha lateral carga", series: "3 × 45–60 s/lado", peso: "+5 kg chaleco", descanso: "60 s" }
+                ]
+            },
+            5: {
+                nombre: "ESPALDA ANCHA + ABS + GLÚTEO + CARDIO",
+                enfasis: "Volumen espalda + definición",
+                ejercicios: [
+                    { nombre: "Dominadas agarre ancho", series: "4 × 6–10", peso: "Peso corporal / +10 kg", descanso: "2–3 min" },
+                    { nombre: "Remo mancuerna", series: "4 × 8–12", peso: "40–45 kg", descanso: "2 min" },
+                    { nombre: "Jalón estrecho", series: "4 × 10–12", peso: "65–70 kg", descanso: "90 s" },
+                    { nombre: "Pullover inclinado", series: "3 × 10–15", peso: "32–35 kg", descanso: "90 s" },
+                    { nombre: "Frog Pumps", series: "4 × 20–30", peso: "25–45 kg", descanso: "60–90 s" },
+                    { nombre: "Cable Abductions", series: "4 × 15–20", peso: "15–20 kg", descanso: "60 s" },
+                    { nombre: "Crunch cable oblicuo", series: "3 × 12–15", peso: "40 kg", descanso: "60 s" },
+                    { nombre: "Ab wheel o Pike", series: "3 × 10–15", peso: "Controlado", descanso: "60–90 s" },
+                    { nombre: "Plancha", series: "3 × 50–70 s", peso: "Peso corporal", descanso: "60 s" },
+                    { nombre: "CARDIO: Caminata inclinada", series: "25–30 min", peso: "Moderada-alta", descanso: "—", cardio: true }
+                ]
+            },
+            6: {
+                nombre: "PIERNA COMPLETA + GLÚTEO PESADO",
+                enfasis: "Gran estímulo glúteos + piernas",
+                ejercicios: [
+                    { nombre: "Sentadilla", series: "5 × 6–8", peso: "105–110 kg", descanso: "2–3 min" },
+                    { nombre: "Hip Thrust", series: "5 × 8–10", peso: "135–145 kg", descanso: "2–3 min" },
+                    { nombre: "Zancadas", series: "4 × 10–12", peso: "24–28 kg c/u", descanso: "2 min" },
+                    { nombre: "Romanian Deadlift", series: "4 × 8–10", peso: "85–105 kg", descanso: "2–3 min" },
+                    { nombre: "Step Ups", series: "3 × 12–15", peso: "18–22 kg c/u", descanso: "90 s" },
+                    { nombre: "Cable Kickbacks", series: "4 × 12–15", peso: "15–20 kg", descanso: "60–90 s" },
+                    { nombre: "Abducciones", series: "4 × 20–25", peso: "Pesado", descanso: "60–90 s" },
+                    { nombre: "Leg extension", series: "3 × 12–15", peso: "Moderado", descanso: "60–90 s" },
+                    { nombre: "Elevaciones laterales", series: "3 × 15–20", peso: "8 kg", descanso: "60 s" },
+                    { nombre: "Caminata inclinada", series: "10–15 min", peso: "Recuperación activa", descanso: "—", cardio: true }
+                ]
+            }
+        };
+
+        let diaActual = new Date().getDay();
+
+        // INICIALIZAR
+        function init() {
+            crearBotonesDias();
+            mostrarDia(diaActual);
+            cargarCheckboxes();
+        }
+
+        // CREAR BOTONES DÍAS
+        function crearBotonesDias() {
+            const daysList = document.getElementById('daysList');
+            daysList.innerHTML = '';
+
+            for (let i = 1; i <= 6; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'day-btn';
+                btn.textContent = `Día ${i}`;
+                btn.onclick = () => mostrarDia(i);
+
+                if (i === diaActual) btn.classList.add('active');
+                if (localStorage.getItem(`dia_${i}_completo`)) btn.classList.add('completed');
+
+                daysList.appendChild(btn);
+            }
+        }
+
+        // MOSTRAR DÍA
+        function mostrarDia(dia) {
+            diaActual = dia;
+            const mainContent = document.getElementById('mainContent');
+
+            if (dia === 0) {
+                mainContent.innerHTML = `
+                    <div class="header">
+                        <div class="day-title">☀️ DOMINGO - RECUPERACIÓN</div>
+                        <div class="day-focus">8.000-10.000 pasos + movilidad suave (0 pesas)</div>
+                    </div>
+                    <div class="section" style="text-align: center; padding: 30px;">
+                        <p style="font-size: 16px; color: #666; line-height: 1.6;">
+                            Hoy es día de <strong>recuperación activa</strong>. Camina, estira, descansa bien y prepárate para la semana.<br><br>
+                            💤 Duerme 8+ horas<br>
+                            🚶 Camina 8-10k pasos<br>
+                            🧘 Movilidad / Yoga suave<br>
+                            ✅ Hidrátate bien
+                        </p>
+                    </div>
+                `;
+                actualizarUI();
+                return;
+            }
+
+            const data = rutina[dia];
+            if (!data) return;
+
+            let html = `
+                <div class="header">
+                    <div class="day-title">💪 DÍA ${dia} — ${data.nombre}</div>
+                    <div class="day-focus"><em>${data.enfasis}</em></div>
+                </div>
+                <div class="section">
+                    <div class="section-title">Ejercicios</div>
+            `;
+
+            data.ejercicios.forEach((ejercicio, index) => {
+                const checkboxId = `dia_${dia}_exc_${index}`;
+                const isCompleted = localStorage.getItem(checkboxId);
+                const cardioClass = ejercicio.cardio ? ' cardio-item' : '';
+
+                html += `
+                    <div class="exercise-item${cardioClass}${isCompleted ? ' completed' : ''}">
+                        <div class="checkbox-wrapper">
+                            <input type="checkbox" class="checkbox" id="${checkboxId}" 
+                                ${isCompleted ? 'checked' : ''} 
+                                onchange="toggleEjercicio('${checkboxId}', ${dia})">
+                        </div>
+                        <div class="exercise-content">
+                            <div class="exercise-name">${ejercicio.nombre}</div>
+                            <div class="exercise-details">
+                                <div class="detail">
+                                    <span class="detail-label">Series</span>
+                                    <span class="detail-value">${ejercicio.series}</span>
+                                </div>
+                                <div class="detail">
+                                    <span class="detail-label">Peso</span>
+                                    <span class="detail-value">${ejercicio.peso}</span>
+                                </div>
+                                <div class="detail">
+                                    <span class="detail-label">Descanso</span>
+                                    <span class="detail-value">${ejercicio.descanso}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `</div>`;
+
+            mainContent.innerHTML = html;
+            actualizarUI();
+            actualizarCheckboxes(dia);
+        }
+
+        // TOGGLE EJERCICIO
+        function toggleEjercicio(checkboxId, dia) {
+            if (document.getElementById(checkboxId).checked) {
+                localStorage.setItem(checkboxId, 'true');
+            } else {
+                localStorage.removeItem(checkboxId);
+            }
+
+            verificarDiaCompleto(dia);
+            actualizarUI();
+        }
+
+        // VERIFICAR SI DÍA ESTÁ COMPLETO
+        function verificarDiaCompleto(dia) {
+            const data = rutina[dia];
+            let todosCompletos = true;
+
+            for (let i = 0; i < data.ejercicios.length; i++) {
+                if (!localStorage.getItem(`dia_${dia}_exc_${i}`)) {
+                    todosCompletos = false;
+                    break;
+                }
+            }
+
+            if (todosCompletos) {
+                localStorage.setItem(`dia_${dia}_completo`, 'true');
+            } else {
+                localStorage.removeItem(`dia_${dia}_completo`);
+            }
+        }
+
+        // ACTUALIZAR UI
+        function actualizarUI() {
+            crearBotonesDias();
+            actualizarProgress();
+        }
+
+        // ACTUALIZAR PROGRESS
+        function actualizarProgress() {
+            const hoy = new Date().getDay();
+            if (hoy === 0) {
+                document.getElementById('completedCount').textContent = '☀️';
+                document.getElementById('progressFill').style.width = '100%';
+                return;
+            }
+
+            const data = rutina[hoy];
+            let completados = 0;
+
+            for (let i = 0; i < data.ejercicios.length; i++) {
+                if (localStorage.getItem(`dia_${hoy}_exc_${i}`)) {
+                    completados++;
+                }
+            }
+
+            document.getElementById('completedCount').textContent = `${completados}/${data.ejercicios.length}`;
+            const porcentaje = (completados / data.ejercicios.length) * 100;
+            document.getElementById('progressFill').style.width = porcentaje + '%';
+        }
+
+        // CARGAR CHECKBOXES
+        function cargarCheckboxes() {
+            const checkboxes = document.querySelectorAll('.checkbox');
+            checkboxes.forEach(checkbox => {
+                if (localStorage.getItem(checkbox.id)) {
+                    checkbox.checked = true;
+                }
+            });
+        }
+
+        // ACTUALIZAR CHECKBOXES DE UN DÍA
+        function actualizarCheckboxes(dia) {
+            setTimeout(() => {
+                const checkboxes = document.querySelectorAll('.checkbox');
+                checkboxes.forEach(checkbox => {
+                    if (localStorage.getItem(checkbox.id)) {
+                        checkbox.checked = true;
+                    }
+                });
+            }, 10);
+        }
+
+        // RESETEAR SOLO HOY
+        function resetTodaysData() {
+            const hoy = new Date().getDay();
+            if (hoy === 0) {
+                alert('¡Hoy es domingo! Descansa y disfruta 😎');
+                return;
+            }
+
+            if (confirm(`¿Seguro que quieres limpiar el Día ${hoy}?`)) {
+                const data = rutina[hoy];
+                for (let i = 0; i < data.ejercicios.length; i++) {
+                    localStorage.removeItem(`dia_${hoy}_exc_${i}`);
+                }
+                localStorage.removeItem(`dia_${hoy}_completo`);
+                mostrarDia(hoy);
+                actualizarUI();
+            }
+        }
+
+        // RESETEAR TODO
+        function resetAllData() {
+            if (confirm('⚠️ ¿Borrar TODO el historial? No se puede deshacer.')) {
+                localStorage.clear();
+                location.reload();
+            }
+        }
+
+        // INICIAR
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
